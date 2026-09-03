@@ -15,15 +15,16 @@ const objectProfiles = ["MATERIAL", "PRODUCT", "ASSET", "COMPONENT", "EQUIPMENT"
 type ObjectProfile = (typeof objectProfiles)[number];
 
 type DemoLanguage = "en" | "pl" | "sv";
-type DemoTheme = "gold" | "green" | "blue" | "white" | "black";
+type DemoTheme = "gold" | "green" | "blue" | "white" | "grey" | "black";
 
 const themeStorageKey = "nosmo.spark.demo.theme.v1";
 const demoThemes: Array<{ id: DemoTheme; label: string; color: string }> = [
-  { id: "gold", label: "Gold", color: "#f0c24f" },
+  { id: "gold", label: "Silent Gold", color: "#f0c24f" },
   { id: "green", label: "Eco Green", color: "#9de6c2" },
   { id: "blue", label: "Nexus Blue", color: "#55bdf2" },
   { id: "white", label: "White", color: "#f4f1e7" },
-  { id: "black", label: "Black", color: "#111111" },
+  { id: "grey", label: "Windows Grey", color: "#b8bab8" },
+  { id: "black", label: "Midnight Black", color: "#111111" },
 ];
 
 function loadTheme(): DemoTheme {

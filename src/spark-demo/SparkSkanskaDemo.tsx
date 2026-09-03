@@ -22,7 +22,7 @@ const demoThemes: Array<{ id: DemoTheme; label: string; color: string }> = [
   { id: "gold", label: "Silent Gold", color: "#f0c24f" },
   { id: "green", label: "Eco Green", color: "#9de6c2" },
   { id: "blue", label: "Nexus Blue", color: "#55bdf2" },
-  { id: "white", label: "White", color: "#f4f1e7" },
+  { id: "white", label: "Architect White", color: "#f4f1e7" },
   { id: "grey", label: "Windows Grey", color: "#b8bab8" },
   { id: "black", label: "Midnight Black", color: "#111111" },
 ];

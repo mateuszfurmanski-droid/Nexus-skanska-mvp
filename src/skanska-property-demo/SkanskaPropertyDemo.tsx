@@ -50,7 +50,7 @@ const themes: Array<{ id: DemoTheme; label: string }> = [
   { id: "green", label: "Eco" },
   { id: "gold", label: "Silent Gold" },
   { id: "blue", label: "Nexus" },
-  { id: "white", label: "White" },
+  { id: "white", label: "Architect White" },
   { id: "grey", label: "Windows Grey" },
   { id: "black", label: "Midnight Black" },
 ];

@@ -149,6 +149,31 @@ function translateDemoNode(root: HTMLElement, translations: Record<string, strin
 const decisionStorageKey = "nosmo.spark.demo.circular-decisions.v1";
 const recordEditStorageKey = "nosmo.spark.demo.record-edits.v1";
 const createdObjectStorageKey = "nosmo.spark.demo.created-objects.v1";
+const validationStorageKey = "nosmo.spark.demo.validation-records.v1";
+const validationScenarioStorageKey = "nosmo.spark.demo.validation-scenario.v1";
+
+type ValidationStatus = "NOT TESTED" | "INTERNAL TEST" | "REPRESENTATIVE ENVIRONMENT" | "EXTERNAL VALIDATION";
+type ValidationResult = "PASS" | "PARTIAL" | "FAIL" | "NOT TESTED";
+
+type ValidationRecord = {
+  id: string;
+  assetId: string;
+  at: string;
+  validationStatus: ValidationStatus;
+  testCaseId: string;
+  testEnvironment: string;
+  constructionScenario: string;
+  dataSource: string;
+  functionsTested: string;
+  testerOrganisation: string;
+  participants: string;
+  testDate: string;
+  expectedOutcome: string;
+  observedOutcome: string;
+  result: ValidationResult;
+  limitations: string;
+  evidenceReferences: string;
+};
 
 type DecisionAuditEntry = {
   id: string;
@@ -283,7 +308,7 @@ export default function SparkSkanskaDemo() {
   const [language, setLanguage] = useState<DemoLanguage>("en");
   const [theme, setTheme] = useState<DemoTheme>(loadTheme);
   const [themeMenuOpen, setThemeMenuOpen] = useState(false);
-  const [view, setView] = useState<"project" | "environment">("project");
+  const [view, setView] = useState<"project" | "environment" | "validation">("project");
   const [selectedAssetId, setSelectedAssetId] = useState<string | null>(null);
   const [createOpen, setCreateOpen] = useState(false);
   const [zoneFilter, setZoneFilter] = useState("");
@@ -293,6 +318,11 @@ export default function SparkSkanskaDemo() {
   const [decisionAudit, setDecisionAudit] = useState<DecisionAuditEntry[]>(() => loadArray(decisionStorageKey));
   const [recordEditAudit, setRecordEditAudit] = useState<RecordEditAuditEntry[]>(() => loadArray(recordEditStorageKey));
   const [createdObjects, setCreatedObjects] = useState<CreatedObjectEntry[]>(() => loadArray(createdObjectStorageKey));
+  const [validationRecords, setValidationRecords] = useState<ValidationRecord[]>(() => loadArray(validationStorageKey));
+  const [validationScenario, setValidationScenario] = useState<boolean[]>(() => {
+    const stored = loadArray<boolean>(validationScenarioStorageKey);
+    return Array.from({ length: 10 }, (_, index) => stored[index] ?? false);
+  });
 
   useEffect(() => {
     try { window.localStorage.setItem(decisionStorageKey, JSON.stringify(decisionAudit)); } catch { /* best effort */ }
@@ -303,6 +333,12 @@ export default function SparkSkanskaDemo() {
   useEffect(() => {
     try { window.localStorage.setItem(createdObjectStorageKey, JSON.stringify(createdObjects)); } catch { /* best effort */ }
   }, [createdObjects]);
+  useEffect(() => {
+    try { window.localStorage.setItem(validationStorageKey, JSON.stringify(validationRecords)); } catch { /* best effort */ }
+  }, [validationRecords]);
+  useEffect(() => {
+    try { window.localStorage.setItem(validationScenarioStorageKey, JSON.stringify(validationScenario)); } catch { /* best effort */ }
+  }, [validationScenario]);
   useEffect(() => {
     try { window.localStorage.setItem(themeStorageKey, theme); } catch { /* best effort */ }
   }, [theme]);
@@ -386,6 +422,10 @@ export default function SparkSkanskaDemo() {
     setCreateOpen(true);
   };
 
+  const recordValidation = (record: ValidationRecord) => {
+    setValidationRecords((current) => [...current, record]);
+  };
+
   useEffect(() => {
     if (language === "pl") translateDemoNode(document.querySelector(".spark-workbench") as HTMLElement, polishUi, "pl");
     if (language === "sv") translateDemoNode(document.querySelector(".spark-workbench") as HTMLElement, swedishUi, "sv");
@@ -403,6 +443,7 @@ export default function SparkSkanskaDemo() {
         <nav className="spark-tabs" aria-label="Demo view">
           <button className={view === "project" ? "active" : ""} onClick={() => setView("project")}>Project</button>
           <button className={view === "environment" ? "active" : ""} onClick={() => setView("environment")}>Environmental</button>
+          <button className={view === "validation" ? "active" : ""} onClick={() => setView("validation")}>Validation</button>
         </nav>
         <button
           type="button"
@@ -516,14 +557,24 @@ export default function SparkSkanskaDemo() {
                 onClose={() => setSelectedAssetId(null)}
                 onDecision={(status, rationale, actor) => recordHumanDecision(selectedAsset.id, status, rationale, actor)}
                 onEdit={(changes, actor, note) => recordEdit(selectedAsset.id, changes, actor, note)}
+                validationRecords={validationRecords.filter((entry) => entry.assetId === selectedAsset.id)}
+                onValidation={recordValidation}
               />
             ) : (
               <div className="spark-detail-empty">Select a row or create a typed Object Card.</div>
             )}
           </aside>
         </section>
-      ) : (
+      ) : view === "environment" ? (
         <EnvironmentalPanel assets={assets} decisionAudit={decisionAudit} editAudit={recordEditAudit} createdObjects={createdObjects} />
+      ) : (
+        <ValidationPanel
+          assets={assets}
+          decisionAudit={decisionAudit}
+          validationRecords={validationRecords}
+          scenario={validationScenario}
+          onToggleScenario={(index) => setValidationScenario((current) => current.map((done, currentIndex) => currentIndex === index ? !done : done))}
+        />
       )}
     </div>
   );
@@ -639,6 +690,8 @@ function AssetDetail({
   onClose,
   onDecision,
   onEdit,
+  validationRecords,
+  onValidation,
 }: {
   asset: DemoAsset;
   zoneName: string;
@@ -647,6 +700,8 @@ function AssetDetail({
   onClose: () => void;
   onDecision: (status: CircularStatus, rationale: string, actor: string) => void;
   onEdit: (changes: RecordEditChanges, actor: string, note: string) => void;
+  validationRecords: ValidationRecord[];
+  onValidation: (record: ValidationRecord) => void;
 }) {
   const [targetStatus, setTargetStatus] = useState<CircularStatus>(asset.circularStatus);
   const [rationale, setRationale] = useState("");
@@ -747,13 +802,153 @@ function AssetDetail({
         ))}
       </DetailSection>
 
+      <ValidationForm asset={asset} records={validationRecords} onSave={onValidation} />
+
       <div className="spark-warning">No real SKANSKA project data is loaded. No kgCO₂e saving is shown without verified quantity, EPD/carbon factor and source provenance.</div>
     </div>
   </>;
 }
 
+function ValidationForm({ asset, records, onSave }: { asset: DemoAsset; records: ValidationRecord[]; onSave: (record: ValidationRecord) => void }) {
+  const [validationStatus, setValidationStatus] = useState<ValidationStatus>("INTERNAL TEST");
+  const [testCaseId, setTestCaseId] = useState("TRL5-INT-001");
+  const [testEnvironment, setTestEnvironment] = useState("NOSMO browser demonstrator / internal test environment");
+  const [constructionScenario, setConstructionScenario] = useState("Construction asset/material lifecycle decision");
+  const [dataSource, setDataSource] = useState("SYNTHETIC_DEMO dataset — not supplied by SKANSKA");
+  const [functionsTested, setFunctionsTested] = useState("Object Card; evidence; lifecycle; circular decision; audit; environmental reporting");
+  const [testerOrganisation, setTesterOrganisation] = useState("NOSMO internal tester");
+  const [participants, setParticipants] = useState("");
+  const [testDate, setTestDate] = useState("");
+  const [expectedOutcome, setExpectedOutcome] = useState("Complete an auditable lifecycle and circular-status decision without inventing missing carbon data.");
+  const [observedOutcome, setObservedOutcome] = useState("");
+  const [result, setResult] = useState<ValidationResult>("NOT TESTED");
+  const [limitations, setLimitations] = useState("Synthetic data and browser-local persistence; external validation environment: to be confirmed.");
+  const [evidenceReferences, setEvidenceReferences] = useState("");
+
+  const save = () => {
+    if (!testCaseId.trim() || !testEnvironment.trim() || !dataSource.trim() || !testerOrganisation.trim()) return;
+    onSave({
+      id: `validation-${Date.now()}-${Math.random().toString(36).slice(2, 6)}`,
+      assetId: asset.id,
+      at: new Date().toISOString(),
+      validationStatus,
+      testCaseId: testCaseId.trim(),
+      testEnvironment: testEnvironment.trim(),
+      constructionScenario: constructionScenario.trim(),
+      dataSource: dataSource.trim(),
+      functionsTested: functionsTested.trim(),
+      testerOrganisation: testerOrganisation.trim(),
+      participants: participants.trim(),
+      testDate,
+      expectedOutcome: expectedOutcome.trim(),
+      observedOutcome: observedOutcome.trim(),
+      result,
+      limitations: limitations.trim(),
+      evidenceReferences: evidenceReferences.trim(),
+    });
+  };
+
+  return <DetailSection title={`Validation (${records.length})`}>
+    <div className="spark-validation-boundary">Engineering test record · default is INTERNAL TEST using SYNTHETIC_DEMO data. External validation is never inferred.</div>
+    <div className="spark-record-form">
+      <label>Validation status<select value={validationStatus} onChange={(event) => setValidationStatus(event.target.value as ValidationStatus)}>{(["NOT TESTED", "INTERNAL TEST", "REPRESENTATIVE ENVIRONMENT", "EXTERNAL VALIDATION"] as ValidationStatus[]).map((value) => <option key={value}>{value}</option>)}</select></label>
+      <label>Test case ID<input value={testCaseId} onChange={(event) => setTestCaseId(event.target.value)} /></label>
+      <label>Test environment<input value={testEnvironment} onChange={(event) => setTestEnvironment(event.target.value)} /></label>
+      <label>Construction scenario<textarea rows={2} value={constructionScenario} onChange={(event) => setConstructionScenario(event.target.value)} /></label>
+      <label>Data source<input value={dataSource} onChange={(event) => setDataSource(event.target.value)} /></label>
+      <label>Nexus functions tested<textarea rows={2} value={functionsTested} onChange={(event) => setFunctionsTested(event.target.value)} /></label>
+      <label>Tester / organisation<input value={testerOrganisation} onChange={(event) => setTesterOrganisation(event.target.value)} /></label>
+      <label>Participants<input value={participants} onChange={(event) => setParticipants(event.target.value)} placeholder="Names or roles participating in the session" /></label>
+      <label>Test date<input type="date" value={testDate} onChange={(event) => setTestDate(event.target.value)} /></label>
+      <label>Expected outcome<textarea rows={2} value={expectedOutcome} onChange={(event) => setExpectedOutcome(event.target.value)} /></label>
+      <label>Observed outcome<textarea rows={3} value={observedOutcome} onChange={(event) => setObservedOutcome(event.target.value)} placeholder="What worked, partially worked or failed?" /></label>
+      <label>Result<select value={result} onChange={(event) => setResult(event.target.value as ValidationResult)}>{(["PASS", "PARTIAL", "FAIL", "NOT TESTED"] as ValidationResult[]).map((value) => <option key={value}>{value}</option>)}</select></label>
+      <label>Limitations / observations<textarea rows={3} value={limitations} onChange={(event) => setLimitations(event.target.value)} /></label>
+      <label>Evidence references<textarea rows={2} value={evidenceReferences} onChange={(event) => setEvidenceReferences(event.target.value)} placeholder="Screenshot, document, dataset or session reference" /></label>
+      <button className="spark-save-decision" onClick={save}>Save validation record</button>
+      <small>Saved only in this browser. Selecting EXTERNAL VALIDATION records the operator's entry; it does not independently verify the organisation or evidence.</small>
+    </div>
+    {records.length > 0 && <div className="spark-validation-history">{[...records].reverse().map((record) => <div className="spark-audit-entry" key={record.id}><strong>{record.testCaseId} · {record.result}</strong><span>{record.validationStatus} · {record.testEnvironment}</span><small>{record.testerOrganisation} · {record.testDate || formatAuditTime(record.at)} · {record.dataSource}</small></div>)}</div>}
+  </DetailSection>;
+}
+
 function DetailSection({ title, children }: { title: string; children: React.ReactNode }) {
   return <section className="spark-detail-section"><h3>{title}</h3>{children}</section>;
+}
+
+const validationScenarioSteps = [
+  "Import or load representative construction object data",
+  "Create or open the Nexus Object Card",
+  "Attach evidence and document references",
+  "Record lifecycle information",
+  "Identify missing information",
+  "Assign one defined circular status",
+  "Record the human decision and justification",
+  "Store the audit history",
+  "Produce environmental / circular reporting output",
+  "Record the validation result and limitations",
+];
+
+function ReadinessRow({ label, status, note }: { label: string; status: "CONFIRMED" | "PARTIAL" | "NOT YET CONFIRMED"; note: string }) {
+  return <div className="spark-readiness-row"><span>{label}</span><strong data-readiness={status}>{status}</strong><small>{note}</small></div>;
+}
+
+function ValidationPanel({
+  assets,
+  decisionAudit,
+  validationRecords,
+  scenario,
+  onToggleScenario,
+}: {
+  assets: DemoAsset[];
+  decisionAudit: DecisionAuditEntry[];
+  validationRecords: ValidationRecord[];
+  scenario: boolean[];
+  onToggleScenario: (index: number) => void;
+}) {
+  const representativeRecords = validationRecords.filter((record) => record.validationStatus === "REPRESENTATIVE ENVIRONMENT");
+  const externalRecords = validationRecords.filter((record) => record.validationStatus === "EXTERNAL VALIDATION");
+  const evidenceRecords = validationRecords.filter((record) => record.evidenceReferences.trim().length > 0);
+  const completedSteps = scenario.filter(Boolean).length;
+  const workflowResult = validationRecords.some((record) => record.result === "PASS") ? "CONFIRMED" : validationRecords.some((record) => record.result === "PARTIAL") || completedSteps > 0 ? "PARTIAL" : "NOT YET CONFIRMED";
+
+  return <main className="spark-validation-page">
+    <section className="spark-validation-heading">
+      <div><span className="spark-mono">ENGINEERING VALIDATION RECORD</span><h2>TRL Validation Evidence</h2><p>TRL 5 evidence readiness</p></div>
+      <div className="spark-validation-notice">Final TRL assessment is subject to independent programme evaluation.</div>
+    </section>
+
+    <section className="spark-readiness-grid">
+      <ReadinessRow label="Prototype functionality demonstrated" status="CONFIRMED" note={`${assets.length} working Object Cards in the demonstrator`} />
+      <ReadinessRow label="Data representativeness" status={representativeRecords.length ? "CONFIRMED" : "PARTIAL"} note={representativeRecords.length ? "Representative-environment record saved" : "Current bundled records are synthetic demo data"} />
+      <ReadinessRow label="Environment representativeness" status={representativeRecords.length ? "CONFIRMED" : "NOT YET CONFIRMED"} note="External validation environment: to be confirmed" />
+      <ReadinessRow label="End-to-end workflow completed" status={workflowResult} note={`${completedSteps}/10 walkthrough stages recorded`} />
+      <ReadinessRow label="Evidence captured" status={evidenceRecords.length ? "CONFIRMED" : validationRecords.length ? "PARTIAL" : "NOT YET CONFIRMED"} note={`${evidenceRecords.length} validation records include evidence references`} />
+      <ReadinessRow label="Known limitations" status="CONFIRMED" note="Synthetic-data, browser-local persistence and carbon-data boundaries are explicit" />
+      <ReadinessRow label="External validation status" status={externalRecords.length ? "PARTIAL" : "NOT YET CONFIRMED"} note={externalRecords.length ? "Operator-recorded entry exists; supporting evidence requires independent review" : "No external validation is claimed"} />
+    </section>
+
+    <section className="spark-validation-scenario">
+      <header><div><h2>Representative test scenario</h2><p>Construction asset/material lifecycle decision · one continuous walkthrough</p></div><strong>{completedSteps}/10 recorded</strong></header>
+      <ol>{validationScenarioSteps.map((step, index) => <li key={step} className={scenario[index] ? "complete" : ""}>
+        <button type="button" onClick={() => onToggleScenario(index)} aria-pressed={scenario[index]}><span>{scenario[index] ? "✓" : index + 1}</span><strong>{step}</strong><small>{scenario[index] ? "CONFIRMED IN THIS BROWSER SESSION" : "NOT YET CONFIRMED"}</small></button>
+      </li>)}</ol>
+      <div className="spark-storage-note">Walkthrough completion and validation records are stored only in this browser. They document a test session; they do not prove independent validation.</div>
+    </section>
+
+    <section className="spark-validation-records">
+      <h2>Recorded validation sessions</h2>
+      {validationRecords.length === 0 ? <div className="spark-audit-empty">No validation session recorded. Open an Object Card and use its compact Validation section.</div> : [...validationRecords].reverse().map((record) => <div className="spark-audit-entry" key={record.id}><strong>{record.testCaseId} · {record.result}</strong><span>{record.constructionScenario} · {record.validationStatus}</span><small>{record.testerOrganisation} · {record.testDate || formatAuditTime(record.at)} · {record.dataSource}</small></div>)}
+    </section>
+
+    <section className="spark-validation-boundaries">
+      <h2>Demo truth boundary</h2>
+      <div><strong>REAL DATA</strong><span>None loaded or claimed in the bundled demonstrator.</span></div>
+      <div><strong>REPRESENTATIVE DATA</strong><span>Must be identified and documented during a controlled validation session.</span></div>
+      <div><strong>SYNTHETIC DEMO DATA</strong><span>Current bundled object records; not supplied by SKANSKA or eSAFE.</span></div>
+      <div><strong>CO₂</strong><span>UNKNOWN until quantity, verified EPD/carbon factor and methodology are available.</span></div>
+    </section>
+  </main>;
 }
 
 function EnvironmentalPanel({

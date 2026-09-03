@@ -196,7 +196,8 @@
 .spark-decision-form input,
 .spark-decision-form textarea,
 .spark-record-form input,
-.spark-record-form textarea { width: 100%; border: 1px solid var(--spark-control-border); border-radius: 3px; background: var(--spark-bg); color: var(--spark-text); padding: 7px 8px; font-size: 10px; text-transform: none; letter-spacing: normal; }
+.spark-record-form textarea,
+.spark-record-form select { width: 100%; border: 1px solid var(--spark-control-border); border-radius: 3px; background: var(--spark-bg); color: var(--spark-text); padding: 7px 8px; font-size: 10px; text-transform: none; letter-spacing: normal; }
 .spark-decision-form textarea,
 .spark-record-form textarea { resize: vertical; min-height: 58px; line-height: 1.35; }
 .spark-decision-form > small,
@@ -227,6 +228,38 @@
 .spark-report-buttons { display: flex; flex-wrap: wrap; gap: 6px; }
 .spark-report-buttons button, .spark-report-buttons a { min-height: 32px; border: 1px solid var(--spark-control-border); border-radius: 3px; background: var(--spark-panel); color: var(--spark-accent-text); padding: 0 10px; font-size: 10px; cursor: pointer; align-items: center; text-decoration: none; display: inline-flex; }
 .spark-report-buttons button:hover, .spark-report-buttons a:hover { background: var(--spark-selected); }
+
+.spark-validation-boundary { margin: 7px 0; padding: 7px 8px; border-left: 2px solid var(--spark-accent); background: var(--spark-selected); color: var(--spark-muted); font-size: 9px; line-height: 1.45; }
+.spark-validation-history { margin-top: 8px; }
+.spark-validation-page { display: grid; grid-template-columns: 1.15fr .85fr; gap: 12px; padding: 12px 14px 26px; }
+.spark-validation-page > section { border-top: 1px solid var(--spark-line); padding-top: 9px; }
+.spark-validation-heading { grid-column: 1 / -1; display: flex; justify-content: space-between; gap: 18px; align-items: flex-start; }
+.spark-validation-heading h2 { margin: 3px 0; font-size: 18px; }
+.spark-validation-heading p { margin: 0; color: var(--spark-accent); font-size: 11px; font-weight: 700; }
+.spark-validation-notice { max-width: 380px; padding: 7px 9px; border: 1px solid var(--spark-control-border); color: var(--spark-muted); font-size: 10px; line-height: 1.45; }
+.spark-readiness-grid { grid-column: 1 / -1; display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); column-gap: 22px; }
+.spark-readiness-row { display: grid; grid-template-columns: 1fr 150px; gap: 3px 10px; padding: 7px 0; border-bottom: 1px solid var(--spark-line-soft); font-size: 10px; }
+.spark-readiness-row > strong { text-align: right; font-size: 9px; letter-spacing: .04em; }
+.spark-readiness-row > strong[data-readiness="CONFIRMED"] { color: #9fe7bf; }
+.spark-readiness-row > strong[data-readiness="PARTIAL"] { color: var(--spark-amber); }
+.spark-readiness-row > strong[data-readiness="NOT YET CONFIRMED"] { color: var(--spark-muted); }
+.spark-readiness-row small { grid-column: 1 / -1; color: var(--spark-muted); font-size: 9px; }
+.spark-validation-scenario h2,
+.spark-validation-records h2,
+.spark-validation-boundaries h2 { margin: 0 0 6px; color: #bdc9c4; font-size: 10px; text-transform: uppercase; letter-spacing: .08em; }
+.spark-validation-scenario header { display: flex; align-items: flex-start; justify-content: space-between; gap: 12px; }
+.spark-validation-scenario header p { margin: 2px 0 0; color: var(--spark-muted); font-size: 9px; }
+.spark-validation-scenario header > strong { color: var(--spark-accent); font-size: 11px; white-space: nowrap; }
+.spark-validation-scenario ol { margin: 9px 0 0; padding: 0; list-style: none; }
+.spark-validation-scenario li button { width: 100%; display: grid; grid-template-columns: 24px 1fr auto; align-items: center; gap: 8px; padding: 7px 0; border: 0; border-bottom: 1px solid var(--spark-line-soft); background: transparent; color: var(--spark-text); text-align: left; cursor: pointer; }
+.spark-validation-scenario li button > span { display: grid; place-items: center; width: 20px; height: 20px; border: 1px solid var(--spark-control-border); border-radius: 2px; color: var(--spark-muted); font-size: 9px; }
+.spark-validation-scenario li.complete button > span { border-color: #579b73; background: #173323; color: #9fe7bf; }
+.spark-validation-scenario li button > strong { font-size: 10px; font-weight: 550; }
+.spark-validation-scenario li button > small { color: var(--spark-muted); font-size: 8px; }
+.spark-validation-records .spark-audit-entry:first-of-type { margin-top: 8px; }
+.spark-validation-boundaries > div { display: grid; grid-template-columns: 165px 1fr; gap: 8px; padding: 7px 0; border-bottom: 1px solid var(--spark-line-soft); font-size: 10px; }
+.spark-validation-boundaries > div strong { color: var(--spark-accent-text); }
+.spark-validation-boundaries > div span { color: var(--spark-muted); }
 
 .spark-workbench[data-spark-theme="white"] .spark-section-title,
 .spark-workbench[data-spark-theme="white"] .spark-detail-section h3,
@@ -270,6 +303,14 @@
   .spark-register-table { min-width: 860px; }
   .spark-detail-panel { top: 48px; width: 100vw; height: calc(100vh - 48px); }
   .spark-environment { grid-template-columns: 1fr; padding: 9px; }
+  .spark-validation-page { grid-template-columns: 1fr; padding: 9px; }
+  .spark-validation-heading,
+  .spark-readiness-grid { grid-column: auto; }
+  .spark-validation-heading { display: block; }
+  .spark-validation-notice { margin-top: 8px; max-width: none; }
+  .spark-readiness-grid { grid-template-columns: 1fr; }
+  .spark-validation-scenario li button { grid-template-columns: 24px 1fr; }
+  .spark-validation-scenario li button > small { grid-column: 2; }
   .spark-environment-audit,
   .spark-report-actions { grid-column: auto; }
   .spark-environment-audit-list { grid-template-columns: 1fr; }

@@ -1,0 +1,14 @@
+:root { font-family: Inter, Arial, sans-serif; color: #f4f4f2; background: #111315; }
+* { box-sizing: border-box; }
+body { margin: 0; }
+.demo-hub { min-height: 100vh; padding: 8vh max(24px, 7vw); background: radial-gradient(circle at 75% 10%, #2c321b 0, #111315 36%); }
+.demo-hub__mark { display: inline-block; padding: 8px 11px; border: 1px solid #e8d51b; color: #e8d51b; font-weight: 800; letter-spacing: .12em; }
+.demo-hub > p { color: #9da2a6; letter-spacing: .18em; font-size: 12px; margin-top: 24px; }
+.demo-hub h1 { margin: 10px 0 48px; font-size: clamp(32px, 6vw, 72px); max-width: 800px; }
+.demo-hub__choices { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 16px; max-width: 980px; }
+.demo-hub__choices a { min-height: 230px; padding: 28px; border: 1px solid #45494d; color: inherit; text-decoration: none; display: flex; flex-direction: column; justify-content: space-between; background: rgba(17,19,21,.78); }
+.demo-hub__choices a:hover { border-color: #e8d51b; }
+.demo-hub__choices small { color: #e8d51b; letter-spacing: .12em; }
+.demo-hub__choices strong { font-size: clamp(22px, 3vw, 34px); line-height: 1.05; }
+.demo-hub__choices span { color: #c8cbcd; }
+@media (max-width: 700px) { .demo-hub__choices { grid-template-columns: 1fr; } .demo-hub__choices a { min-height: 180px; } }

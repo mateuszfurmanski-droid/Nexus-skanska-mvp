@@ -21,6 +21,7 @@
 .property-demo[data-theme="gold"] { --demo-bg:#161108; --demo-panel:rgba(39,30,14,.93); --demo-panel-strong:#30220e; --demo-text:#fff7de; --demo-muted:#c9b98c; --demo-border:rgba(240,194,79,.22); --demo-accent:#f0c24f; --demo-accent-strong:#d39b21; }
 .property-demo[data-theme="blue"] { --demo-bg:#06111a; --demo-panel:rgba(8,29,43,.93); --demo-panel-strong:#0b2637; --demo-text:#edf9ff; --demo-muted:#9bbdd0; --demo-border:rgba(85,189,242,.22); --demo-accent:#55bdf2; --demo-accent-strong:#278bc1; }
 .property-demo[data-theme="white"] { --demo-bg:#eeeae0; --demo-panel:rgba(255,255,255,.9); --demo-panel-strong:#fff; --demo-text:#171815; --demo-muted:#60645c; --demo-border:rgba(20,30,22,.16); --demo-accent:#4d8066; --demo-accent-strong:#2c6548; --demo-warn:#9c6a00; --demo-danger:#a42e26; }
+.property-demo[data-theme="grey"] { --demo-bg:#aeb1af; --demo-panel:#c7c9c7; --demo-panel-strong:#b8bbb9; --demo-text:#171918; --demo-muted:#505451; --demo-border:#777b78; --demo-accent:#173f78; --demo-accent-strong:#102f5b; --demo-warn:#735600; --demo-danger:#8d2929; }
 .property-demo[data-theme="black"] { --demo-bg:#030303; --demo-panel:rgba(12,12,12,.95); --demo-panel-strong:#161616; --demo-text:#f3f3f3; --demo-muted:#aaa; --demo-border:rgba(255,255,255,.14); --demo-accent:#dedede; --demo-accent-strong:#fff; }
 
 .property-demo *, .property-demo *::before, .property-demo *::after { box-sizing: border-box; }
@@ -291,7 +292,7 @@
 .property-demo-theme-picker button { display:grid; grid-template-columns:16px 1fr 14px; align-items:center; gap:7px; padding:7px; border:0; border-radius:3px; background:transparent; color:var(--demo-text); text-align:left; cursor:pointer; font-size:10px; }
 .property-demo-theme-picker button.active, .property-demo-theme-picker button:hover { background:color-mix(in srgb,var(--demo-accent) 12%,transparent); color:var(--demo-accent); }
 .property-demo-theme-dot { width:11px; height:11px; border:1px solid #777; border-radius:50%; }
-.property-demo-theme-dot-green { background:#9de6c2; }.property-demo-theme-dot-gold { background:#f0c24f; }.property-demo-theme-dot-blue { background:#55bdf2; }.property-demo-theme-dot-white { background:#f5f2e9; }.property-demo-theme-dot-black { background:#111; }
+.property-demo-theme-dot-green { background:#9de6c2; }.property-demo-theme-dot-gold { background:#f0c24f; }.property-demo-theme-dot-blue { background:#55bdf2; }.property-demo-theme-dot-white { background:#f5f2e9; }.property-demo-theme-dot-grey { background:#b8bab8; }.property-demo-theme-dot-black { background:#111; }
 
 .property-demo-intro { min-height:58px; display:flex; align-items:center; justify-content:space-between; gap:14px; padding:8px 14px; border-bottom:1px solid var(--demo-border); background:var(--demo-panel); }
 .property-demo-eyebrow { margin:0 0 2px; color:var(--demo-muted); font-size:9px; letter-spacing:.08em; }

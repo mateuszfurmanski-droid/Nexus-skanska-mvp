@@ -41,17 +41,18 @@ import {
 } from "./data";
 import "./skanska-property-demo.css";
 
-type DemoTheme = "green" | "gold" | "blue" | "white" | "black";
+type DemoTheme = "green" | "gold" | "blue" | "white" | "grey" | "black";
 type DetailTab = "object" | "work" | "circular" | "esg" | "sources";
 type WorkStage = "issue" | "task" | "work" | "evidence" | "approved" | "updated" | "reuse" | "esg";
 
 const themeStorageKey = "nosmo.spark.demo.theme.v1";
 const themes: Array<{ id: DemoTheme; label: string }> = [
   { id: "green", label: "Eco" },
-  { id: "gold", label: "Gold" },
+  { id: "gold", label: "Silent Gold" },
   { id: "blue", label: "Nexus" },
   { id: "white", label: "White" },
-  { id: "black", label: "Black" },
+  { id: "grey", label: "Windows Grey" },
+  { id: "black", label: "Midnight Black" },
 ];
 
 function loadTheme(): DemoTheme {

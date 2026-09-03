@@ -154,12 +154,14 @@ const validationScenarioStorageKey = "nosmo.spark.demo.validation-scenario.v1";
 
 type ValidationStatus = "NOT TESTED" | "INTERNAL TEST" | "REPRESENTATIVE ENVIRONMENT" | "EXTERNAL VALIDATION";
 type ValidationResult = "PASS" | "PARTIAL" | "FAIL" | "NOT TESTED";
+type EvidenceTarget = "TRL 5 VALIDATION" | "TRL 6 REPRESENTATIVE PILOT";
 
 type ValidationRecord = {
   id: string;
   assetId: string;
   at: string;
   validationStatus: ValidationStatus;
+  evidenceTarget?: EvidenceTarget;
   testCaseId: string;
   testEnvironment: string;
   constructionScenario: string;
@@ -173,6 +175,12 @@ type ValidationRecord = {
   result: ValidationResult;
   limitations: string;
   evidenceReferences: string;
+  siteZone?: string;
+  deploymentConfiguration?: string;
+  operationalConstraints?: string;
+  deviationsIssues?: string;
+  correctiveActions?: string;
+  repeatRunId?: string;
 };
 
 type DecisionAuditEntry = {
@@ -810,6 +818,7 @@ function AssetDetail({
 }
 
 function ValidationForm({ asset, records, onSave }: { asset: DemoAsset; records: ValidationRecord[]; onSave: (record: ValidationRecord) => void }) {
+  const [evidenceTarget, setEvidenceTarget] = useState<EvidenceTarget>("TRL 5 VALIDATION");
   const [validationStatus, setValidationStatus] = useState<ValidationStatus>("INTERNAL TEST");
   const [testCaseId, setTestCaseId] = useState("TRL5-INT-001");
   const [testEnvironment, setTestEnvironment] = useState("NOSMO browser demonstrator / internal test environment");
@@ -824,6 +833,12 @@ function ValidationForm({ asset, records, onSave }: { asset: DemoAsset; records:
   const [result, setResult] = useState<ValidationResult>("NOT TESTED");
   const [limitations, setLimitations] = useState("Synthetic data and browser-local persistence; external validation environment: to be confirmed.");
   const [evidenceReferences, setEvidenceReferences] = useState("");
+  const [siteZone, setSiteZone] = useState("");
+  const [deploymentConfiguration, setDeploymentConfiguration] = useState("Browser demonstrator; configuration to be recorded before a representative pilot");
+  const [operationalConstraints, setOperationalConstraints] = useState("");
+  const [deviationsIssues, setDeviationsIssues] = useState("");
+  const [correctiveActions, setCorrectiveActions] = useState("");
+  const [repeatRunId, setRepeatRunId] = useState("");
 
   const save = () => {
     if (!testCaseId.trim() || !testEnvironment.trim() || !dataSource.trim() || !testerOrganisation.trim()) return;
@@ -831,6 +846,7 @@ function ValidationForm({ asset, records, onSave }: { asset: DemoAsset; records:
       id: `validation-${Date.now()}-${Math.random().toString(36).slice(2, 6)}`,
       assetId: asset.id,
       at: new Date().toISOString(),
+      evidenceTarget,
       validationStatus,
       testCaseId: testCaseId.trim(),
       testEnvironment: testEnvironment.trim(),
@@ -845,12 +861,19 @@ function ValidationForm({ asset, records, onSave }: { asset: DemoAsset; records:
       result,
       limitations: limitations.trim(),
       evidenceReferences: evidenceReferences.trim(),
+      siteZone: siteZone.trim(),
+      deploymentConfiguration: deploymentConfiguration.trim(),
+      operationalConstraints: operationalConstraints.trim(),
+      deviationsIssues: deviationsIssues.trim(),
+      correctiveActions: correctiveActions.trim(),
+      repeatRunId: repeatRunId.trim(),
     });
   };
 
   return <DetailSection title={`Validation (${records.length})`}>
-    <div className="spark-validation-boundary">Engineering test record · default is INTERNAL TEST using SYNTHETIC_DEMO data. External validation is never inferred.</div>
+    <div className="spark-validation-boundary">Engineering test / pilot record · default is INTERNAL TEST using SYNTHETIC_DEMO data. TRL 5 or TRL 6 achievement and external validation are never inferred.</div>
     <div className="spark-record-form">
+      <label>Evidence target<select value={evidenceTarget} onChange={(event) => setEvidenceTarget(event.target.value as EvidenceTarget)}>{(["TRL 5 VALIDATION", "TRL 6 REPRESENTATIVE PILOT"] as EvidenceTarget[]).map((value) => <option key={value}>{value}</option>)}</select></label>
       <label>Validation status<select value={validationStatus} onChange={(event) => setValidationStatus(event.target.value as ValidationStatus)}>{(["NOT TESTED", "INTERNAL TEST", "REPRESENTATIVE ENVIRONMENT", "EXTERNAL VALIDATION"] as ValidationStatus[]).map((value) => <option key={value}>{value}</option>)}</select></label>
       <label>Test case ID<input value={testCaseId} onChange={(event) => setTestCaseId(event.target.value)} /></label>
       <label>Test environment<input value={testEnvironment} onChange={(event) => setTestEnvironment(event.target.value)} /></label>
@@ -865,10 +888,18 @@ function ValidationForm({ asset, records, onSave }: { asset: DemoAsset; records:
       <label>Result<select value={result} onChange={(event) => setResult(event.target.value as ValidationResult)}>{(["PASS", "PARTIAL", "FAIL", "NOT TESTED"] as ValidationResult[]).map((value) => <option key={value}>{value}</option>)}</select></label>
       <label>Limitations / observations<textarea rows={3} value={limitations} onChange={(event) => setLimitations(event.target.value)} /></label>
       <label>Evidence references<textarea rows={2} value={evidenceReferences} onChange={(event) => setEvidenceReferences(event.target.value)} placeholder="Screenshot, document, dataset or session reference" /></label>
+      {evidenceTarget === "TRL 6 REPRESENTATIVE PILOT" && <>
+        <label>Site / operational zone<input value={siteZone} onChange={(event) => setSiteZone(event.target.value)} placeholder="Representative location or work area — to be confirmed" /></label>
+        <label>Deployment configuration<textarea rows={2} value={deploymentConfiguration} onChange={(event) => setDeploymentConfiguration(event.target.value)} /></label>
+        <label>Operational constraints<textarea rows={2} value={operationalConstraints} onChange={(event) => setOperationalConstraints(event.target.value)} placeholder="Connectivity, device, timing, access or process constraints" /></label>
+        <label>Deviations / issues<textarea rows={2} value={deviationsIssues} onChange={(event) => setDeviationsIssues(event.target.value)} placeholder="Record deviations from the expected workflow" /></label>
+        <label>Corrective actions / next test<textarea rows={2} value={correctiveActions} onChange={(event) => setCorrectiveActions(event.target.value)} placeholder="Owner, action and follow-up evidence required" /></label>
+        <label>Repeat run ID<input value={repeatRunId} onChange={(event) => setRepeatRunId(event.target.value)} placeholder="Link a repeat run used to assess reproducibility" /></label>
+      </>}
       <button className="spark-save-decision" onClick={save}>Save validation record</button>
-      <small>Saved only in this browser. Selecting EXTERNAL VALIDATION records the operator's entry; it does not independently verify the organisation or evidence.</small>
+      <small>Saved only in this browser. A TRL 6 pilot record is evidence preparation, not a TRL decision. Selecting EXTERNAL VALIDATION records the operator's entry; it does not independently verify the organisation or evidence.</small>
     </div>
-    {records.length > 0 && <div className="spark-validation-history">{[...records].reverse().map((record) => <div className="spark-audit-entry" key={record.id}><strong>{record.testCaseId} · {record.result}</strong><span>{record.validationStatus} · {record.testEnvironment}</span><small>{record.testerOrganisation} · {record.testDate || formatAuditTime(record.at)} · {record.dataSource}</small></div>)}</div>}
+    {records.length > 0 && <div className="spark-validation-history">{[...records].reverse().map((record) => <div className="spark-audit-entry" key={record.id}><strong>{record.testCaseId} · {record.result}</strong><span>{record.evidenceTarget || "TRL 5 VALIDATION"} · {record.validationStatus} · {record.testEnvironment}</span><small>{record.testerOrganisation} · {record.testDate || formatAuditTime(record.at)} · {record.dataSource}</small></div>)}</div>}
   </DetailSection>;
 }
 
@@ -909,15 +940,21 @@ function ValidationPanel({
   const representativeRecords = validationRecords.filter((record) => record.validationStatus === "REPRESENTATIVE ENVIRONMENT");
   const externalRecords = validationRecords.filter((record) => record.validationStatus === "EXTERNAL VALIDATION");
   const evidenceRecords = validationRecords.filter((record) => record.evidenceReferences.trim().length > 0);
+  const trl6Records = validationRecords.filter((record) => record.evidenceTarget === "TRL 6 REPRESENTATIVE PILOT");
+  const trl6RepresentativeRecords = trl6Records.filter((record) => record.validationStatus === "REPRESENTATIVE ENVIRONMENT" || record.validationStatus === "EXTERNAL VALIDATION");
+  const trl6OperationalRecords = trl6RepresentativeRecords.filter((record) => record.siteZone?.trim() && record.deploymentConfiguration?.trim());
+  const trl6RepeatRecords = trl6Records.filter((record) => record.repeatRunId?.trim());
+  const trl6IssueRecords = trl6Records.filter((record) => record.deviationsIssues?.trim() || record.operationalConstraints?.trim());
   const completedSteps = scenario.filter(Boolean).length;
   const workflowResult = validationRecords.some((record) => record.result === "PASS") ? "CONFIRMED" : validationRecords.some((record) => record.result === "PARTIAL") || completedSteps > 0 ? "PARTIAL" : "NOT YET CONFIRMED";
 
   return <main className="spark-validation-page">
     <section className="spark-validation-heading">
-      <div><span className="spark-mono">ENGINEERING VALIDATION RECORD</span><h2>TRL Validation Evidence</h2><p>TRL 5 evidence readiness</p></div>
-      <div className="spark-validation-notice">Final TRL assessment is subject to independent programme evaluation.</div>
+      <div><span className="spark-mono">ENGINEERING VALIDATION & PILOT RECORD</span><h2>TRL Validation Evidence</h2><p>TRL 5 validation + TRL 6 representative-pilot evidence readiness</p></div>
+      <div className="spark-validation-notice">Neither TRL 5 nor TRL 6 is claimed as achieved. Final TRL assessment is subject to independent programme evaluation.</div>
     </section>
 
+    <h3 className="spark-readiness-title">TRL 5 evidence readiness</h3>
     <section className="spark-readiness-grid">
       <ReadinessRow label="Prototype functionality demonstrated" status="CONFIRMED" note={`${assets.length} working Object Cards in the demonstrator`} />
       <ReadinessRow label="Data representativeness" status={representativeRecords.length ? "CONFIRMED" : "PARTIAL"} note={representativeRecords.length ? "Representative-environment record saved" : "Current bundled records are synthetic demo data"} />
@@ -926,6 +963,17 @@ function ValidationPanel({
       <ReadinessRow label="Evidence captured" status={evidenceRecords.length ? "CONFIRMED" : validationRecords.length ? "PARTIAL" : "NOT YET CONFIRMED"} note={`${evidenceRecords.length} validation records include evidence references`} />
       <ReadinessRow label="Known limitations" status="CONFIRMED" note="Synthetic-data, browser-local persistence and carbon-data boundaries are explicit" />
       <ReadinessRow label="External validation status" status={externalRecords.length ? "PARTIAL" : "NOT YET CONFIRMED"} note={externalRecords.length ? "Operator-recorded entry exists; supporting evidence requires independent review" : "No external validation is claimed"} />
+    </section>
+
+    <h3 className="spark-readiness-title">TRL 6 evidence readiness</h3>
+    <section className="spark-readiness-grid spark-readiness-grid--trl6">
+      <ReadinessRow label="Integrated prototype configuration" status={trl6Records.length ? "PARTIAL" : "NOT YET CONFIRMED"} note={trl6Records.length ? "Pilot-target record saved; deployed configuration still requires session evidence" : "No TRL 6 representative-pilot record saved"} />
+      <ReadinessRow label="Representative operational environment" status={trl6OperationalRecords.length ? "CONFIRMED" : trl6Records.length ? "PARTIAL" : "NOT YET CONFIRMED"} note={trl6OperationalRecords.length ? "Location and configuration recorded by the operator" : "Site, zone and operating conditions must be documented"} />
+      <ReadinessRow label="Representative users and roles" status={trl6Records.some((record) => record.participants.trim()) ? "PARTIAL" : "NOT YET CONFIRMED"} note="Participants must be evidenced and independently reviewable" />
+      <ReadinessRow label="End-to-end pilot execution" status={trl6RepresentativeRecords.some((record) => record.result === "PASS") ? "PARTIAL" : "NOT YET CONFIRMED"} note="A saved PASS is an operator record, not independent confirmation" />
+      <ReadinessRow label="Repeatability / repeat run" status={trl6RepeatRecords.length ? "PARTIAL" : "NOT YET CONFIRMED"} note={trl6RepeatRecords.length ? `${trl6RepeatRecords.length} pilot record(s) reference a repeat run` : "Repeat the scenario with a linked run ID"} />
+      <ReadinessRow label="Operational deviations and limitations" status={trl6IssueRecords.length ? "CONFIRMED" : "NOT YET CONFIRMED"} note="Record constraints, deviations, failures and corrective actions" />
+      <ReadinessRow label="Independent TRL 6 assessment" status="NOT YET CONFIRMED" note="No TRL 6 achievement or eSAFE/SKANSKA validation is claimed" />
     </section>
 
     <section className="spark-validation-scenario">
@@ -938,7 +986,7 @@ function ValidationPanel({
 
     <section className="spark-validation-records">
       <h2>Recorded validation sessions</h2>
-      {validationRecords.length === 0 ? <div className="spark-audit-empty">No validation session recorded. Open an Object Card and use its compact Validation section.</div> : [...validationRecords].reverse().map((record) => <div className="spark-audit-entry" key={record.id}><strong>{record.testCaseId} · {record.result}</strong><span>{record.constructionScenario} · {record.validationStatus}</span><small>{record.testerOrganisation} · {record.testDate || formatAuditTime(record.at)} · {record.dataSource}</small></div>)}
+      {validationRecords.length === 0 ? <div className="spark-audit-empty">No validation session recorded. Open an Object Card and use its compact Validation section.</div> : [...validationRecords].reverse().map((record) => <div className="spark-audit-entry" key={record.id}><strong>{record.testCaseId} · {record.result}</strong><span>{record.evidenceTarget || "TRL 5 VALIDATION"} · {record.constructionScenario} · {record.validationStatus}</span><small>{record.testerOrganisation} · {record.testDate || formatAuditTime(record.at)} · {record.dataSource}</small></div>)}
     </section>
 
     <section className="spark-validation-boundaries">

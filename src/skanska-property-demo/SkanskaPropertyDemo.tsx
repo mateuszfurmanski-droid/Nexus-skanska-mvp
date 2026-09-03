@@ -119,6 +119,7 @@ function RelationChip({ icon, label, value, onClick }: { icon: React.ReactNode; 
 
 export default function SkanskaPropertyDemo() {
   const [theme, setTheme] = useState<DemoTheme>(loadTheme);
+  const [themeMenuOpen, setThemeMenuOpen] = useState(false);
   const [selectedFloorId, setSelectedFloorId] = useState("floor-00");
   const [selectedSpaceId, setSelectedSpaceId] = useState("space-plant");
   const [selectedAssetId, setSelectedAssetId] = useState("asset-ahu-04");
@@ -309,34 +310,43 @@ export default function SkanskaPropertyDemo() {
         <div className="property-demo-brand">
           <img src={compactNexusLogo} alt="Nexus" />
           <div>
-            <strong>SKANSKA PROPERTY OPERATIONS DEMO</strong>
-            <span>Construction + Building Operating Layer</span>
+            <strong>NEXUS</strong>
+            <span>Property Operations</span>
           </div>
         </div>
+        <nav className="property-demo-top-tabs" aria-label="Property operations views">
+          {(["object", "work", "circular", "esg", "sources"] as DetailTab[]).map((item) => (
+            <button key={item} type="button" className={tab === item ? "active" : ""} onClick={() => setTab(item)}>{item === "object" ? "Project" : item === "sources" ? "Sources" : item === "esg" ? "ESG" : item[0].toUpperCase() + item.slice(1)}</button>
+          ))}
+        </nav>
         <div className="property-demo-header-actions">
           <ProvenanceBadge />
-          <div className="property-demo-theme-picker" aria-label="Nexus skin selector">
-            {themes.map((item) => (
-              <button key={item.id} type="button" className={theme === item.id ? "active" : ""} onClick={() => setTheme(item.id)}>
-                {item.label}
-              </button>
-            ))}
+          <span className="property-demo-language" aria-label="Polish language">🇵🇱</span>
+          <div className="property-demo-theme-shell">
+            <button type="button" className="property-demo-menu-trigger" aria-label="Open appearance menu" aria-expanded={themeMenuOpen} onClick={() => setThemeMenuOpen((open) => !open)}>☰</button>
+            {themeMenuOpen && <div className="property-demo-theme-picker" aria-label="Nexus skin selector">
+              <strong>Appearance</strong>
+              {themes.map((item) => (
+                <button key={item.id} type="button" className={theme === item.id ? "active" : ""} onClick={() => { setTheme(item.id); setThemeMenuOpen(false); }}>
+                  <span className={`property-demo-theme-dot property-demo-theme-dot-${item.id}`} />{item.label}<span>{theme === item.id ? "✓" : ""}</span>
+                </button>
+              ))}
+            </div>}
           </div>
         </div>
       </header>
 
       <section className="property-demo-intro">
         <div>
-          <p className="property-demo-eyebrow">ONE PROJECT / BUILDING GRAPH</p>
-          <h1>Everything SKANSKA knows about this physical object.</h1>
+          <p className="property-demo-eyebrow">SKANSKA PROPERTY / COMMERCIAL OPERATIONS DEMO</p>
+          <h1>{building.name} <span>/ Object Register + Building Graph</span></h1>
           <p>
-            One operational graph connects the building, BIM identity, asset, material, people, work, evidence, maintenance and circular outcome.
-            Existing systems stay the source of record where appropriate; Nexus connects the context and action.
+            Building, BIM identity, assets, materials, people, work, evidence, maintenance and circular outcomes in one operational layer.
           </p>
         </div>
         <button type="button" className="property-demo-ai-cta" onClick={() => setAiOpen(true)}>
           <Bot />
-          <span><small>Stop Searching. Start Asking.</small>What do we know about this asset?</span>
+          <span><small>ASK NEXUS</small>What do we know about this asset?</span>
         </button>
       </section>
 
